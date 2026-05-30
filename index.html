@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VELTA — Честный смартфон</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #080808;
@@ -24,14 +24,13 @@
     --border-accent: rgba(184,255,87,0.25);
     --font-display: 'Syne', sans-serif;
     --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
     --r: 16px;
     --r-lg: 24px;
   }
-
+ 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { scroll-behavior: smooth; }
-
   body {
     background: var(--bg);
     color: var(--text);
@@ -41,855 +40,386 @@
     overflow-x: hidden;
     cursor: none;
   }
-
+ 
   /* CUSTOM CURSOR */
-  .cursor {
-    position: fixed; top: 0; left: 0; z-index: 9999;
-    pointer-events: none;
-    mix-blend-mode: difference;
-  }
-  .cursor-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    transform: translate(-50%,-50%);
-    transition: transform 0.1s;
-  }
-  .cursor-ring {
-    position: fixed; top: 0; left: 0; z-index: 9998;
-    width: 36px; height: 36px;
-    border: 1px solid rgba(184,255,87,0.5);
-    border-radius: 50%;
-    transform: translate(-50%,-50%);
-    pointer-events: none;
-    transition: width 0.3s, height 0.3s, border-color 0.3s, transform 0.08s;
-  }
-  body:has(a:hover) .cursor-ring,
-  body:has(button:hover) .cursor-ring {
-    width: 52px; height: 52px;
-    border-color: var(--accent);
-  }
-
-  /* NOISE TEXTURE OVERLAY */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    opacity: 0.025;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 200px;
-    pointer-events: none;
-  }
-
-  /* SCROLLBAR */
+  .cursor { position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none; mix-blend-mode: difference; }
+  .cursor-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; transform: translate(-50%,-50%); transition: transform 0.1s; }
+  .cursor-ring { position: fixed; top: 0; left: 0; z-index: 9998; width: 36px; height: 36px; border: 1px solid rgba(184,255,87,0.5); border-radius: 50%; transform: translate(-50%,-50%); pointer-events: none; transition: width 0.3s, height 0.3s, border-color 0.3s, transform 0.08s; }
+  body:has(a:hover) .cursor-ring, body:has(button:hover) .cursor-ring { width: 52px; height: 52px; border-color: var(--accent); }
+ 
+  /* NOISE */
+  body::before { content: ''; position: fixed; inset: 0; z-index: 0; opacity: 0.025; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 200px; pointer-events: none; }
+ 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
-
-  /* TYPOGRAPHY */
+ 
   h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.1; letter-spacing: -0.02em; }
-
+ 
+  /* ── PROGRESS BAR ── */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: rgba(8,8,8,0.95);
+    padding: 7px 40px;
+    display: flex; align-items: center; gap: 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .pb-label { color: var(--accent); white-space: nowrap; }
+  .pb-track { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; max-width: 200px; }
+  .pb-fill { height: 100%; width: 45%; background: linear-gradient(90deg, var(--accent), #8aff00); border-radius: 2px; animation: pbPulse 3s ease-in-out infinite; }
+  @keyframes pbPulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .pb-pct { color: var(--accent); font-weight: 500; }
+  .pb-sep { color: var(--text-dim); }
+  .pb-status { color: var(--text-muted); }
+ 
   /* HEADER */
   header {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    position: fixed; top: 29px; left: 0; right: 0; z-index: 100;
     padding: 20px 40px;
     display: flex; align-items: center; justify-content: space-between;
     background: rgba(8,8,8,0.7);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
-    transition: padding 0.3s;
+    transition: padding 0.3s, top 0.3s;
   }
   header.scrolled { padding: 14px 40px; }
-
-  .logo {
-    font-family: var(--font-display);
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: 0.15em;
-    color: var(--text);
-    text-decoration: none;
-    position: relative;
-  }
+ 
+  .logo { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: 0.15em; color: var(--text); text-decoration: none; position: relative; }
   .logo span { color: var(--accent); }
-  .logo::after {
-    content: '';
-    position: absolute; bottom: -2px; left: 0; right: 0; height: 1px;
-    background: var(--accent);
-    transform: scaleX(0); transform-origin: left;
-    transition: transform 0.3s;
-  }
+  .logo::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 1px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
   .logo:hover::after { transform: scaleX(1); }
-
-  nav { display: flex; align-items: center; gap: 36px; }
-  nav a {
-    font-size: 13px; font-weight: 400; letter-spacing: 0.05em;color: var(--text-muted); text-decoration: none; text-transform: uppercase;
-    transition: color 0.25s;
-    position: relative;
-  }
-  nav a::after {
-    content: '';
-    position: absolute; bottom: -3px; left: 0; right: 0; height: 1px;
-    background: var(--accent);
-    transform: scaleX(0); transform-origin: left;
-    transition: transform 0.3s;
-  }
+ 
+  nav { display: flex; align-items: center; gap: 28px; }
+  nav a { font-size: 13px; font-weight: 400; letter-spacing: 0.05em; color: var(--text-muted); text-decoration: none; text-transform: uppercase; transition: color 0.25s; position: relative; }
+  nav a::after { content: ''; position: absolute; bottom: -3px; left: 0; right: 0; height: 1px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
   nav a:hover { color: var(--text); }
   nav a:hover::after { transform: scaleX(1); }
-
-  .btn {
-    font-family: var(--font-display);
-    font-size: 13px; font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    border: none; cursor: none;
-    border-radius: 100px;
-    transition: all 0.3s;
-    text-decoration: none;
-    display: inline-flex; align-items: center; gap: 8px;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #000;
-    padding: 11px 24px;
-  }
-  .btn-primary:hover {
-    background: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 0 30px rgba(184,255,87,0.4);
-  }
-  .btn-ghost {
-    background: transparent;
-    color: var(--text);
-    padding: 11px 24px;
-    border: 1px solid var(--border);
-  }
-  .btn-ghost:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    transform: translateY(-2px);
-  }
-  .btn-lg {
-    font-size: 15px;
-    padding: 16px 36px;
-  }
-
-  /* SECTION BASE */
+  nav a.active { color: var(--accent); }
+  nav a.active::after { transform: scaleX(1); }
+ 
+  .btn { font-family: var(--font-display); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border: none; cursor: none; border-radius: 100px; transition: all 0.3s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: var(--accent); color: #000; padding: 11px 24px; }
+  .btn-primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 0 30px rgba(184,255,87,0.4); }
+  .btn-ghost { background: transparent; color: var(--text); padding: 11px 24px; border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+  .btn-lg { font-size: 15px; padding: 16px 36px; }
+  .btn-cyan { background: var(--accent2); color: #000; padding: 11px 24px; }
+  .btn-cyan:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,229,255,0.4); }
+ 
   section { position: relative; z-index: 1; }
-
-  /* HERO */
-  #hero {
-    min-height: 100vh;
-    display: flex; flex-direction: column; justify-content: center;
-    padding: 120px 40px 80px;
-    overflow: hidden;
-  }
-  .hero-bg-grid {
-    position: absolute; inset: 0; z-index: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-    background-size: 80px 80px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
-  }
-  .hero-glow {
-    position: absolute; top: 20%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(184,255,87,0.08) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .hero-glow-blue {
-    position: absolute; top: 60%; right: 10%;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
+ 
+  /* ── HERO ── */
+  #hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 160px 40px 80px; overflow: hidden; }
+  .hero-bg-grid { position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 80px 80px; mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%); }
+  .hero-glow { position: absolute; top: 20%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(184,255,87,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-glow-blue { position: absolute; top: 60%; right: 10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%); pointer-events: none; }
+ 
   .hero-content { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; width: 100%; }
-  .hero-tag {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--accent-dim);
-    border: 1px solid var(--border-accent);
-    border-radius: 100px;
-    padding: 6px 14px;
-    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--accent); font-weight: 500;
-    margin-bottom: 32px;
-    animation: fadeUp 0.8s 0.2s both;
-  }
+  .hero-tag { display: inline-flex; align-items: center; gap: 8px; background: var(--accent-dim); border: 1px solid var(--border-accent); border-radius: 100px; padding: 6px 14px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 500; margin-bottom: 32px; animation: fadeUp 0.8s 0.2s both; }
   .hero-tag-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
-
+ 
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-  .hero-title {
-    font-size: clamp(52px, 9vw, 130px);
-    font-weight: 800;
-    line-height: 0.95;
-    letter-spacing: -0.04em;
-    margin-bottom: 28px;
-    animation: fadeUp 0.8s 0.35s both;
-  }
+ 
+  .hero-title { font-size: clamp(52px, 9vw, 130px); font-weight: 800; line-height: 0.95; letter-spacing: -0.04em; margin-bottom: 28px; animation: fadeUp 0.8s 0.35s both; }
   .hero-title .line2 { color: var(--accent); display: block; }
-  .hero-title .line3 {
-    -webkit-text-stroke: 1px rgba(255,255,255,0.2);
-    color: transparent;
-    display: block;
-  }
-
-  .hero-sub {
-    font-size: clamp(16px, 2vw, 20px);
-    color: var(--text-muted);
-    max-width: 480px;
-    font-weight: 300;
-    margin-bottom: 48px;
-    animation: fadeUp 0.8s 0.5s both;
-  }
+  .hero-title .line3 { -webkit-text-stroke: 1px rgba(255,255,255,0.2); color: transparent; display: block; }
+ 
+  .hero-sub { font-size: clamp(16px, 2vw, 20px); color: var(--text-muted); max-width: 480px; font-weight: 300; margin-bottom: 48px; animation: fadeUp 0.8s 0.5s both; }
   .hero-sub strong { color: var(--text); font-weight: 500; }
-
+ 
   .hero-cta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 80px; animation: fadeUp 0.8s 0.65s both; }
-
-  .hero-phone-wrapper {position: absolute; right: 5%; top: 50%;
-    transform: translateY(-50%);
-    width: min(400px, 35vw);
-    animation: fadeUp 0.8s 0.4s both, float 6s ease-in-out infinite;
-  }
+ 
+  .hero-phone-wrapper { position: absolute; right: 5%; top: 50%; transform: translateY(-50%); width: min(400px, 35vw); animation: fadeUp 0.8s 0.4s both, float 6s ease-in-out infinite; }
   @keyframes float { 0%,100% { transform: translateY(-50%) translateY(0); } 50% { transform: translateY(-50%) translateY(-20px); } }
-
-  .phone-placeholder {
-    width: 100%; aspect-ratio: 9/18;
-    border-radius: 40px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 50%, #111 100%);
-    position: relative;
-    overflow: hidden;
-    box-shadow:
-      0 0 0 1px rgba(184,255,87,0.1),
-      0 40px 80px rgba(0,0,0,0.8),
-      inset 0 1px 0 rgba(255,255,255,0.08);
-  }
-  .phone-placeholder::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(184,255,87,0.05) 0%, transparent 50%, rgba(0,229,255,0.05) 100%);
-  }
-  .phone-placeholder::after {
-    content: 'VRERU LITE';
-    position: absolute; bottom: 40px; left: 50%;
-    transform: translateX(-50%);
-    font-family: var(--font-display);
-    font-size: 11px; letter-spacing: 0.25em;
-    color: rgba(255,255,255,0.15);
-  }
-  .phone-notch {
-    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-    width: 80px; height: 8px; background: #000;
-    border-radius: 100px;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
-  }
-  .phone-screen-glow {
-    position: absolute; top: 30%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120%; height: 60%;
-    background: radial-gradient(ellipse, rgba(184,255,87,0.08) 0%, transparent 70%);
-  }
-  .phone-lines {
-    position: absolute; inset: 0;
-    background-image: repeating-linear-gradient(0deg, transparent, transparent 30px, rgba(255,255,255,0.015) 31px);
-  }
-
-  .hero-stats {
-    display: flex; gap: 48px; flex-wrap: wrap;
-    animation: fadeUp 0.8s 0.8s both;
-  }
-  .stat { }
-  .stat-num {
-    font-family: var(--font-display);
-    font-size: 32px; font-weight: 700;
-    color: var(--text);
-    line-height: 1;
-  }
+ 
+  .phone-placeholder { width: 100%; aspect-ratio: 9/18; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 50%, #111 100%); position: relative; overflow: hidden; box-shadow: 0 0 0 1px rgba(184,255,87,0.1), 0 40px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.08); }
+  .phone-placeholder::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(184,255,87,0.05) 0%, transparent 50%, rgba(0,229,255,0.05) 100%); }
+  .phone-placeholder::after { content: 'V-01B PROTOTYPE'; position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.25em; color: rgba(255,255,255,0.15); }
+  .phone-notch { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); width: 80px; height: 8px; background: #000; border-radius: 100px; box-shadow: 0 0 0 1px rgba(255,255,255,0.05); }
+  .phone-screen-glow { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); width: 120%; height: 60%; background: radial-gradient(ellipse, rgba(184,255,87,0.08) 0%, transparent 70%); }
+  .phone-lines { position: absolute; inset: 0; background-image: repeating-linear-gradient(0deg, transparent, transparent 30px, rgba(255,255,255,0.015) 31px); }
+ 
+  .hero-stats { display: flex; gap: 48px; flex-wrap: wrap; animation: fadeUp 0.8s 0.8s both; }
+  .stat-num { font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
   .stat-num span { color: var(--accent); }
   .stat-label { font-size: 12px; color: var(--text-muted); letter-spacing: 0.05em; margin-top: 4px; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* SECTION STYLES */
+ 
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+ 
+  /* SECTION BASE */
   .section-wrap { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
-  .section-label {
-    display: inline-flex; align-items: center; gap: 10px;
-    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
-    color: var(--accent); font-weight: 500;
-    margin-bottom: 20px;
-  }
-  .section-label::before {
-    content: '';
-    width: 30px; height: 1px; background: var(--accent);
-  }
-  .section-title {
-    font-size: clamp(32px, 5vw, 60px);
-    font-weight: 700; letter-spacing: -0.03em;
-    margin-bottom: 16px;
-  }
-
-  /* PRICE CALCULATOR */
-  #price {
-    padding: 120px 0;
-    background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 50%, var(--bg) 100%);
-  }
+  .section-label { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); font-weight: 500; margin-bottom: 20px; }
+  .section-label::before { content: ''; width: 30px; height: 1px; background: var(--accent); }
+  .section-title { font-size: clamp(32px, 5vw, 60px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 16px; }
+ 
+  /* ── PHILOSOPHY ── */
+  #philosophy { padding: 120px 0; background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 50%, var(--bg) 100%); }
+  .philosophy-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; margin-top: 60px; }
+  .philosophy-main { }
+  .philosophy-lead { font-size: clamp(20px, 2.5vw, 28px); font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; line-height: 1.3; margin-bottom: 32px; color: var(--text); }
+  .philosophy-lead span { color: var(--accent); }
+  .philosophy-body { font-size: 16px; color: var(--text-muted); line-height: 1.8; margin-bottom: 24px; }
+  .philosophy-body strong { color: var(--text); font-weight: 500; }
+  .philosophy-pillars { display: flex; flex-direction: column; gap: 16px; }
+  .pillar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; display: flex; align-items: flex-start; gap: 16px; transition: all 0.3s; cursor: default; }
+  .pillar:hover { border-color: var(--border-accent); transform: translateX(4px); }
+  .pillar-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .pillar-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; letter-spacing: 0.04em; margin-bottom: 4px; text-transform: uppercase; color: var(--accent); }
+  .pillar-text { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+ 
+  /* ── PROTOTYPE V-01B ── */
+  #prototype { padding: 120px 0; }
+  .proto-header { margin-bottom: 60px; }
+  .proto-subtitle { font-size: 17px; color: var(--text-muted); max-width: 520px; font-weight: 300; margin-top: 8px; }
+  .proto-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.2); border-radius: 100px; padding: 6px 14px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--accent2); margin-bottom: 16px; }
+  .proto-badge-dot { width: 5px; height: 5px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
+ 
+  .spec-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+  .spec-table { width: 100%; border-collapse: collapse; }
+  .spec-table thead tr { background: rgba(184,255,87,0.06); border-bottom: 1px solid var(--border-accent); }
+  .spec-table thead th { padding: 18px 28px; text-align: left; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .spec-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.2s; }
+  .spec-table tbody tr:last-child { border-bottom: none; }
+  .spec-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+  .spec-table td { padding: 20px 28px; font-size: 14px; vertical-align: top; }
+  .spec-table td:first-child { color: var(--text-muted); font-weight: 400; width: 40%; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; }
+  .spec-table td:last-child { color: var(--text); font-weight: 400; }
+  .spec-val-accent { color: var(--accent); font-weight: 500; font-family: var(--font-display); }
+  .spec-status { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.2); border-radius: 100px; padding: 4px 12px; font-size: 11px; color: var(--accent2); font-family: var(--font-mono); }
+  .spec-status-dot { width: 5px; height: 5px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
+ 
+  .proto-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 32px; }
+  .spec-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 36px; transition: all 0.4s; position: relative; overflow: hidden; cursor: default; }
+  .spec-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0; transition: opacity 0.4s; }
+  .spec-card::after { content: ''; position: absolute; bottom: -60px; right: -60px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(184,255,87,0.06) 0%, transparent 70%); opacity: 0; transition: all 0.4s; }
+  .spec-card:hover { border-color: rgba(184,255,87,0.2); transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  .spec-card:hover::before { opacity: 1; }
+  .spec-card:hover::after { opacity: 1; bottom: -40px; right: -40px; }
+  .spec-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--accent-dim); border: 1px solid var(--border-accent); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 24px; transition: all 0.3s; }
+  .spec-card:hover .spec-icon { background: var(--accent); border-color: var(--accent); transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 12px rgba(184,255,87,0.5)); }
+  .spec-name { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .spec-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; line-height: 1.2; margin-bottom: 10px; }
+  .spec-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+ 
+  /* ── ROADMAP ── */
+  #roadmap { padding: 120px 0; background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 50%, var(--bg) 100%); }
+  .roadmap-timeline { margin-top: 60px; position: relative; }
+  .roadmap-line { position: absolute; left: 28px; top: 0; bottom: 0; width: 1px; background: linear-gradient(180deg, var(--accent), rgba(184,255,87,0.1)); }
+  .roadmap-items { display: flex; flex-direction: column; gap: 0; }
+  .roadmap-item { display: flex; gap: 32px; align-items: flex-start; padding: 32px 0; position: relative; }
+  .roadmap-item:not(:last-child) { border-bottom: 1px solid var(--border); }
+  .roadmap-dot-wrap { flex-shrink: 0; width: 56px; display: flex; justify-content: center; padding-top: 4px; position: relative; z-index: 1; }
+  .roadmap-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); transition: all 0.3s; }
+  .roadmap-dot.done { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px rgba(184,255,87,0.5); }
+  .roadmap-dot.current { background: var(--bg); border-color: var(--accent2); box-shadow: 0 0 12px rgba(0,229,255,0.4); animation: ringPulse 2s infinite; }
+  .roadmap-dot.future { background: var(--bg); border-color: var(--text-dim); }
+  @keyframes ringPulse { 0%,100%{ box-shadow: 0 0 12px rgba(0,229,255,0.4); } 50%{ box-shadow: 0 0 24px rgba(0,229,255,0.7); } }
+  .roadmap-content { flex: 1; }
+  .roadmap-quarter { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+  .roadmap-quarter.done { color: var(--accent); }
+  .roadmap-quarter.current { color: var(--accent2); }
+  .roadmap-quarter.future { color: var(--text-dim); }
+  .roadmap-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .roadmap-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+  .roadmap-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 100px; padding: 4px 12px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-mono); margin-top: 10px; }
+  .badge-done { background: rgba(184,255,87,0.1); border: 1px solid rgba(184,255,87,0.25); color: var(--accent); }
+  .badge-current { background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.2); color: var(--accent2); }
+  .badge-future { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-dim); }
+ 
+  /* ── PRICE ── */
+  #price { padding: 120px 0; background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 50%, var(--bg) 100%); }
   .price-header { margin-bottom: 60px; }
   .price-subtitle { font-size: 17px; color: var(--text-muted); max-width: 500px; font-weight: 300; }
-
-  .price-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    align-items: start;
-  }
-
+  .price-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
   .cost-list { display: flex; flex-direction: column; gap: 4px; }
-  .cost-item {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 24px;
-    border-radius: var(--r);
-    border: 1px solid var(--border);
-    background: var(--surface);
-    position: relative; overflow: hidden;
-    transition: all 0.3s;
-    cursor: default;
-  }
-  .cost-item::before {
-    content: '';
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--accent);
-    transform: scaleY(0); transform-origin: bottom;transition: transform 0.3s;
-  }
-  .cost-item::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: var(--accent-dim);
-    opacity: 0; transition: opacity 0.3s;
-  }
+  .cost-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-radius: var(--r); border: 1px solid var(--border); background: var(--surface); position: relative; overflow: hidden; transition: all 0.3s; cursor: default; }
+  .cost-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); transform: scaleY(0); transform-origin: bottom; transition: transform 0.3s; }
+  .cost-item::after { content: ''; position: absolute; inset: 0; background: var(--accent-dim); opacity: 0; transition: opacity 0.3s; }
   .cost-item:hover { border-color: var(--border-accent); transform: translateX(4px); }
   .cost-item:hover::before { transform: scaleY(1); }
   .cost-item:hover::after { opacity: 1; }
   .cost-item:hover .cost-name { color: var(--text); }
-
-  .cost-name {
-    font-size: 15px; color: var(--text-muted);
-    transition: color 0.3s;
-    position: relative; z-index: 1;
-    display: flex; align-items: center; gap: 10px;
-  }
+  .cost-name { font-size: 15px; color: var(--text-muted); transition: color 0.3s; position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; }
   .cost-icon { font-size: 18px; }
-  .cost-value {
-    font-family: var(--font-display);
-    font-size: 15px; font-weight: 600;
-    color: var(--text);
-    position: relative; z-index: 1;
-  }
-
+  .cost-value { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); position: relative; z-index: 1; }
   .cost-divider { height: 1px; background: var(--border); margin: 12px 0; }
-
-  .cost-item.total {
-    background: var(--surface2);
-    border-color: rgba(255,255,255,0.1);
-  }
+  .cost-item.total { background: var(--surface2); border-color: rgba(255,255,255,0.1); }
   .cost-item.total .cost-name { color: var(--text); font-weight: 500; }
   .cost-item.total .cost-value { color: var(--accent); font-size: 18px; }
-
-  .cost-item.markup {
-    border-color: rgba(0,229,255,0.15);
-    background: rgba(0,229,255,0.04);
-  }
+  .cost-item.markup { border-color: rgba(0,229,255,0.15); background: rgba(0,229,255,0.04); }
   .cost-item.markup .cost-value { color: var(--accent2); }
   .cost-item.markup::before { background: var(--accent2); }
-
-  .cost-item.final-price {
-    background: linear-gradient(135deg, rgba(184,255,87,0.1) 0%, rgba(0,229,255,0.05) 100%);
-    border-color: var(--border-accent);
-    padding: 24px;
-  }
+  .cost-item.final-price { background: linear-gradient(135deg, rgba(184,255,87,0.1) 0%, rgba(0,229,255,0.05) 100%); border-color: var(--border-accent); padding: 24px; }
   .cost-item.final-price .cost-name { font-size: 17px; color: var(--text); font-weight: 600; }
   .cost-item.final-price .cost-value { font-size: 28px; color: var(--accent); }
-
-  .price-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    padding: 40px;
-    position: sticky; top: 100px;
-  }
-  .price-card-title {
-    font-family: var(--font-display);
-    font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 32px;
-  }
-
-  .vs-container {
-    display: flex; flex-direction: column; gap: 20px;
-    margin-bottom: 32px;
-  }
-  .vs-bar-label {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 8px;
-  }
+  .price-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 40px; position: sticky; top: 100px; }
+  .price-card-title { font-family: var(--font-display); font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 32px; }
+  .vs-container { display: flex; flex-direction: column; gap: 20px; margin-bottom: 32px; }
+  .vs-bar-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .vs-brand { font-size: 13px; color: var(--text-muted); }
   .vs-price { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
   .vs-price.ours { color: var(--accent); }
   .vs-price.theirs { color: var(--text-muted); text-decoration: line-through; }
-
-  .bar-track {
-    height: 8px; background: var(--bg);
-    border-radius: 4px; overflow: hidden;
-  }
-  .bar-fill {
-    height: 100%; border-radius: 4px;
-    animation: barGrow 1.5s 0.5s both;
-    transform-origin: left;
-  }
+  .bar-track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; animation: barGrow 1.5s 0.5s both; transform-origin: left; }
   .bar-fill.ours { background: linear-gradient(90deg, var(--accent), #8aff00); width: 66.7%; }
   .bar-fill.theirs { background: rgba(255,255,255,0.2); width: 100%; }
   @keyframes barGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-
-  .savings-badge {
-    background: linear-gradient(135deg, var(--accent-dim), rgba(0,229,255,0.08));
-    border: 1px solid var(--border-accent);
-    border-radius: var(--r);
-    padding: 20px 24px;
-    text-align: center;
-  }
-  .savings-num {
-    font-family: var(--font-display);
-    font-size: 42px; font-weight: 800;
-    color: var(--accent);
-    line-height: 1;
-  }
+  .savings-badge { background: linear-gradient(135deg, var(--accent-dim), rgba(0,229,255,0.08)); border: 1px solid var(--border-accent); border-radius: var(--r); padding: 20px 24px; text-align: center; }
+  .savings-num { font-family: var(--font-display); font-size: 42px; font-weight: 800; color: var(--accent); line-height: 1; }
   .savings-text { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
-
-  /* SPECS */
+ 
+  /* ── SPECS (VRERU LITE) ── */
   #specs { padding: 120px 0; }
-  .specs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
-    margin-top: 60px;
-  }
-  .spec-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    padding: 36px;transition: all 0.4s;
-    position: relative; overflow: hidden;
-    cursor: default;
-  }
-  .spec-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0; transition: opacity 0.4s;
-  }
-  .spec-card::after {
-    content: '';
-    position: absolute; bottom: -60px; right: -60px;
-    width: 160px; height: 160px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(184,255,87,0.06) 0%, transparent 70%);
-    opacity: 0; transition: all 0.4s;
-  }
-  .spec-card:hover {
-    border-color: rgba(184,255,87,0.2);
-    transform: translateY(-6px);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-  }
-  .spec-card:hover::before { opacity: 1; }
-  .spec-card:hover::after { opacity: 1; bottom: -40px; right: -40px; }
-
-  .spec-icon {
-    width: 52px; height: 52px;
-    border-radius: 14px;
-    background: var(--accent-dim);
-    border: 1px solid var(--border-accent);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    margin-bottom: 24px;
-    transition: all 0.3s;
-  }
-  .spec-card:hover .spec-icon {
-    background: var(--accent);
-    border-color: var(--accent);
-    transform: scale(1.1) rotate(-5deg);
-    filter: drop-shadow(0 0 12px rgba(184,255,87,0.5));
-  }
-  .spec-card:hover .spec-icon .emoji-filter {
-    filter: none;
-  }
-
-  .spec-name {
-    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 8px;
-  }
-  .spec-value {
-    font-family: var(--font-display);
-    font-size: 22px; font-weight: 700;
-    line-height: 1.2; margin-bottom: 10px;
-  }
-  .spec-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
-
-  /* PREORDER */
+  .specs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 60px; }
+ 
+  /* ── LAB LOG ── */
+  #lablog { padding: 120px 0; }
+  .lablog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 60px; }
+  .log-entry { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 28px; position: relative; overflow: hidden; transition: all 0.3s; cursor: default; }
+  .log-entry::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); opacity: 0.4; }
+  .log-entry:hover { border-color: var(--border-accent); transform: translateY(-3px); }
+  .log-date { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .log-date::before { content: '//'; color: var(--text-dim); }
+  .log-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .log-text { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .log-tag { display: inline-flex; align-items: center; gap: 5px; background: var(--accent-dim); border: 1px solid var(--border-accent); border-radius: 100px; padding: 3px 10px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--accent); margin-top: 14px; text-transform: uppercase; }
+ 
+  /* ── PREORDER ── */
   #preorder { padding: 120px 0; }
-  .preorder-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 32px;
-    padding: 80px;
-    position: relative; overflow: hidden;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
-  }
-  .preorder-wrap::before {
-    content: '';
-    position: absolute; top: -100px; left: -100px;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(184,255,87,0.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .preorder-wrap::after {
-    content: '';
-    position: absolute; bottom: -100px; right: -100px;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(0,229,255,0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .preorder-form-title {
-    font-family: var(--font-display);
-    font-size: 42px; font-weight: 800;
-    line-height: 1.1; letter-spacing: -0.03em;
-    margin-bottom: 16px;
-  }
+  .preorder-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 32px; padding: 80px; position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .preorder-wrap::before { content: ''; position: absolute; top: -100px; left: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(184,255,87,0.06) 0%, transparent 70%); pointer-events: none; }
+  .preorder-wrap::after { content: ''; position: absolute; bottom: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0,229,255,0.05) 0%, transparent 70%); pointer-events: none; }
+  .preorder-form-title { font-family: var(--font-display); font-size: 42px; font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px; }
   .preorder-form-title span { color: var(--accent); }
   .preorder-form-sub { font-size: 16px; color: var(--text-muted); margin-bottom: 40px; }
-
-  .form-row {
-    display: flex; gap: 12px;
-    position: relative; z-index: 1;
-  }
-  .form-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 16px 24px;
-    font-family: var(--font-body);
-    font-size: 15px; color: var(--text);
-    outline: none;
-    transition: all 0.3s;
-  }
+  .form-row { display: flex; gap: 12px; position: relative; z-index: 1; }
+  .form-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 100px; padding: 16px 24px; font-family: var(--font-body); font-size: 15px; color: var(--text); outline: none; transition: all 0.3s; }
   .form-input::placeholder { color: var(--text-dim); }
-  .form-input:focus {
-    border-color: var(--border-accent);
-    box-shadow: 0 0 0 3px rgba(184,255,87,0.08);
-  }
-
+  .form-input:focus { border-color: var(--border-accent); box-shadow: 0 0 0 3px rgba(184,255,87,0.08); }
   .preorder-info { position: relative; z-index: 1; }
   .preorder-features { list-style: none; display: flex; flex-direction: column; gap: 16px; }
-  .preorder-features li {
-    display: flex; align-items: center; gap: 14px;
-    font-size: 15px; color: var(--text-muted);
-  }
-  .preorder-features li::before {
-    content: '✓';
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    background: var(--accent-dim);
-    border: 1px solid var(--border-accent);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; color: var(--accent);
-    flex-shrink: 0;
-  }
-  .preorder-features li span { color: var(--text); }transition: all 0.4s;
-    position: relative; overflow: hidden;
-    cursor: default;
-  }
-  .spec-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0; transition: opacity 0.4s;
-  }
-  .spec-card::after {
-    content: '';
-    position: absolute; bottom: -60px; right: -60px;
-    width: 160px; height: 160px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(184,255,87,0.06) 0%, transparent 70%);
-    opacity: 0; transition: all 0.4s;
-  }
-  .spec-card:hover {
-    border-color: rgba(184,255,87,0.2);
-    transform: translateY(-6px);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-  }
-  .spec-card:hover::before { opacity: 1; }
-  .spec-card:hover::after { opacity: 1; bottom: -40px; right: -40px; }
-
-  .spec-icon {
-    width: 52px; height: 52px;
-    border-radius: 14px;
-    background: var(--accent-dim);
-    border: 1px solid var(--border-accent);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    margin-bottom: 24px;
-    transition: all 0.3s;
-  }
-  .spec-card:hover .spec-icon {
-    background: var(--accent);
-    border-color: var(--accent);
-    transform: scale(1.1) rotate(-5deg);
-    filter: drop-shadow(0 0 12px rgba(184,255,87,0.5));
-  }
-  .spec-card:hover .spec-icon .emoji-filter {
-    filter: none;
-  }
-
-  .spec-name {
-    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 8px;
-  }
-  .spec-value {
-    font-family: var(--font-display);
-    font-size: 22px; font-weight: 700;
-    line-height: 1.2; margin-bottom: 10px;
-  }
-  .spec-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
-
-  /* PREORDER */
-  #preorder { padding: 120px 0; }
-  .preorder-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 32px;
-    padding: 80px;
-    position: relative; overflow: hidden;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
-  }
-  .preorder-wrap::before {
-    content: '';
-    position: absolute; top: -100px; left: -100px;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(184,255,87,0.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .preorder-wrap::after {
-    content: '';
-    position: absolute; bottom: -100px; right: -100px;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(0,229,255,0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .preorder-form-title {
-    font-family: var(--font-display);
-    font-size: 42px; font-weight: 800;
-    line-height: 1.1; letter-spacing: -0.03em;
-    margin-bottom: 16px;
-  }
-  .preorder-form-title span { color: var(--accent); }
-  .preorder-form-sub { font-size: 16px; color: var(--text-muted); margin-bottom: 40px; }
-
-  .form-row {
-    display: flex; gap: 12px;
-    position: relative; z-index: 1;
-  }
-  .form-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 16px 24px;
-    font-family: var(--font-body);
-    font-size: 15px; color: var(--text);
-    outline: none;
-    transition: all 0.3s;
-  }
-  .form-input::placeholder { color: var(--text-dim); }
-  .form-input:focus {
-    border-color: var(--border-accent);
-    box-shadow: 0 0 0 3px rgba(184,255,87,0.08);
-  }
-
-  .preorder-info { position: relative; z-index: 1; }
-  .preorder-features { list-style: none; display: flex; flex-direction: column; gap: 16px; }
-  .preorder-features li {
-    display: flex; align-items: center; gap: 14px;
-    font-size: 15px; color: var(--text-muted);
-  }
-  .preorder-features li::before {
-    content: '✓';
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    background: var(--accent-dim);
-    border: 1px solid var(--border-accent);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; color: var(--accent);
-    flex-shrink: 0;
-  }
-  .preorder-features li span { color: var(--text); }.preorder-price-block {
-    margin-top: 40px;
-    padding-top: 32px;
-    border-top: 1px solid var(--border);
-  }
+  .preorder-features li { display: flex; align-items: center; gap: 14px; font-size: 15px; color: var(--text-muted); }
+  .preorder-features li::before { content: '✓'; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-dim); border: 1px solid var(--border-accent); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--accent); flex-shrink: 0; }
+  .preorder-features li span { color: var(--text); }
+  .preorder-price-block { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border); }
   .preorder-price-label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-  .preorder-price-num {
-    font-family: var(--font-display);
-    font-size: 52px; font-weight: 800;
-    color: var(--accent);
-    line-height: 1.1;
-  }
-  .preorder-price-compare {
-    font-size: 13px; color: var(--text-dim);
-    margin-top: 4px;
-  }
+  .preorder-price-num { font-family: var(--font-display); font-size: 52px; font-weight: 800; color: var(--accent); line-height: 1.1; }
+  .preorder-price-compare { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
   .preorder-price-compare s { color: var(--text-muted); }
-
+ 
+  /* ── SUBSCRIBE ── */
+  .subscribe-block { margin-top: 40px; padding: 28px; background: rgba(0,229,255,0.04); border: 1px solid rgba(0,229,255,0.15); border-radius: var(--r); }
+  .subscribe-title { font-family: var(--font-display); font-size: 15px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+  .subscribe-sub { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
+  .subscribe-sub span { color: var(--accent2); }
+ 
   /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 1000;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(12px);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.3s;
-  }
+  .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
   .modal-overlay.active { opacity: 1; pointer-events: all; }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 28px;
-    padding: 60px;
-    max-width: 520px; width: 90%;
-    position: relative;
-    transform: translateY(30px) scale(0.96);
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    text-align: center;
-  }
-  .modal-overlay.active .modal {
-    transform: translateY(0) scale(1);
-  }
-  .modal::before {
-    content: '';
-    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    width: 200px; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  }
-  .modal-icon {
-    font-size: 52px; margin-bottom: 24px;
-    animation: bounce 0.6s 0.3s both;
-  }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 60px; max-width: 520px; width: 90%; position: relative; transform: translateY(30px) scale(0.96); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); text-align: center; }
+  .modal-overlay.active .modal { transform: translateY(0) scale(1); }
+  .modal::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+  .modal-icon { font-size: 52px; margin-bottom: 24px; animation: bounce 0.6s 0.3s both; }
   @keyframes bounce { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-  .modal-title {
-    font-family: var(--font-display);
-    font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
-    margin-bottom: 16px;
-  }
+  .modal-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 16px; }
   .modal-title span { color: var(--accent); }
   .modal-text { font-size: 15px; color: var(--text-muted); line-height: 1.7; margin-bottom: 32px; }
-  .modal-close {
-    background: var(--accent); color: #000;
-    border: none; border-radius: 100px;
-    padding: 14px 32px;
-    font-family: var(--font-display);
-    font-size: 14px; font-weight: 600; letter-spacing: 0.06em;
-    cursor: none; transition: all 0.3s;
-  }
+  .modal-close { background: var(--accent); color: #000; border: none; border-radius: 100px; padding: 14px 32px; font-family: var(--font-display); font-size: 14px; font-weight: 600; letter-spacing: 0.06em; cursor: none; transition: all 0.3s; }
   .modal-close:hover { background: #fff; transform: translateY(-2px); }
-
+ 
   /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 40px;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 20px;
-    position: relative; z-index: 1;
-  }
-  .footer-logo {
-    font-family: var(--font-display);
-    font-size: 18px; font-weight: 800;
-    letter-spacing: 0.15em;
-  }
+  footer { border-top: 1px solid var(--border); padding: 48px 40px; position: relative; z-index: 1; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+  .footer-logo { font-family: var(--font-display); font-size: 18px; font-weight: 800; letter-spacing: 0.15em; }
   .footer-logo span { color: var(--accent); }
-  .footer-copy { font-size: 13px; color: var(--text-dim); }
   .footer-links { display: flex; gap: 24px; }
   .footer-links a { font-size: 13px; color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
   .footer-links a:hover { color: var(--accent); }
-
+  .footer-copy { font-size: 12px; color: var(--text-dim); line-height: 1.6; text-align: right; }
+  .footer-copy .restricted { color: var(--text-dim); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; display: block; margin-top: 4px; }
+  .footer-copy .restricted span { color: rgba(0,229,255,0.5); }
+ 
+  /* DIVIDER */
+  .hr { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 40px; }
+ 
   /* SCROLL REVEAL */
-  .reveal {
-    opacity: 0; transform: translateY(40px);
-    transition: opacity 0.8s, transform 0.8s;
-  }
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s, transform 0.8s; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
-
-  /* MOBILE */
+ 
+  /* MOBILE NAV */
+  .mob-menu { display: none; flex-direction: column; gap: 5px; padding: 8px; background: none; border: none; cursor: none; }
+  .mob-menu span { display: block; width: 22px; height: 1.5px; background: var(--text); }
   @media (max-width: 900px) {
-    header { padding: 16px 20px; }
+    .mob-menu { display: flex; }
+    header { padding: 16px 20px; top: 27px; }
     nav { display: none; }
-    #hero { padding: 100px 20px 60px; }
+    #hero { padding: 140px 20px 60px; }
     .hero-phone-wrapper { display: none; }
     .hero-title { font-size: clamp(44px, 12vw, 72px); }
     .section-wrap { padding: 0 20px; }
     .price-layout { grid-template-columns: 1fr; }
     .preorder-wrap { grid-template-columns: 1fr; padding: 40px 24px; gap: 48px; }
     .form-row { flex-direction: column; }
-    footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+    footer { padding: 24px 20px; }
+    .footer-inner { flex-direction: column; align-items: flex-start; }
+    .footer-copy { text-align: left; }
     .hero-stats { gap: 24px; }
     .price-card { position: static; }
+    .philosophy-layout { grid-template-columns: 1fr; gap: 48px; }
+    .roadmap-line { left: 28px; }
+    .lablog-grid { grid-template-columns: 1fr; }
+    #progress-bar { padding: 7px 16px; font-size: 9px; gap: 10px; }
+    .pb-track { max-width: 100px; }
+    .pb-status { display: none; }
   }
   @media (max-width: 600px) {
     .specs-grid { grid-template-columns: 1fr; }
     .preorder-price-num { font-size: 40px; }
-  }/* MOBILE NAV BUTTON */
-  .mob-menu {
-    display: none;
-    flex-direction: column; gap: 5px; padding: 8px;
-    background: none; border: none; cursor: none;
+    .spec-table td { padding: 14px 18px; }
+    .spec-table thead th { padding: 14px 18px; }
   }
-  .mob-menu span { display: block; width: 22px; height: 1.5px; background: var(--text); }
-  @media (max-width: 900px) { .mob-menu { display: flex; } }
-
-  /* DIVIDER */
-  .hr { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 40px; }
 </style>
 </head>
 <body>
-
+ 
 <!-- Custom cursor -->
 <div class="cursor" id="cursor"><div class="cursor-dot"></div></div>
 <div class="cursor-ring" id="cursorRing"></div>
-
+ 
+<!-- PROGRESS BAR -->
+<div id="progress-bar">
+  <span class="pb-label">STATUS: PROTOTYPE V-01B</span>
+  <span class="pb-sep">|</span>
+  <span style="white-space:nowrap">Engineering Progress:</span>
+  <div class="pb-track"><div class="pb-fill"></div></div>
+  <span class="pb-pct">45%</span>
+  <span class="pb-sep">|</span>
+  <span class="pb-status">Architecture Testing Phase</span>
+</div>
+ 
 <!-- HEADER -->
 <header id="header">
-  <a href="#" class="logo">VEL<span>T</span>A</a>
+  <a href="#hero" class="logo">VEL<span>T</span>A</a>
   <nav>
-    <a href="#specs">Модели</a>
-    <a href="#price">Себестоимость</a>
-    <a href="#preorder">О нас</a>
+    <a href="#hero" class="active">Главная</a>
+    <a href="#philosophy">О нас</a>
+    <a href="#prototype">V-01B</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#price">Цена</a>
   </nav>
   <a href="#preorder" class="btn btn-primary">Предзаказ →</a>
-  <button class="mob-menu" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <button class="mob-menu" aria-label="Menu"><span></span><span></span><span></span></button>
 </header>
-
+ 
 <!-- HERO -->
 <section id="hero">
   <div class="hero-bg-grid"></div>
   <div class="hero-glow"></div>
   <div class="hero-glow-blue"></div>
-
   <div class="hero-content">
     <div class="hero-tag">
       <span class="hero-tag-dot"></span>
@@ -905,26 +435,15 @@
       Мы показываем каждый рубль себестоимости.
     </p>
     <div class="hero-cta">
-      <a href="#price" class="btn btn-primary btn-lg">Узнать цену ↓</a>
+      <a href="#prototype" class="btn btn-primary btn-lg">Узнать больше ↓</a>
       <a href="#preorder" class="btn btn-ghost btn-lg">Предзаказ</a>
     </div>
     <div class="hero-stats">
-      <div class="stat">
-        <div class="stat-num">20<span>K</span></div>
-        <div class="stat-label">Финальная цена, ₽</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num">120<span>Гц</span></div>
-        <div class="stat-label">Плавность экрана</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num">5000<span>мАч</span></div>
-        <div class="stat-label">Батарея</div>
-      </div>
+      <div class="stat"><div class="stat-num">20<span>K</span></div><div class="stat-label">Финальная цена, ₽</div></div>
+      <div class="stat"><div class="stat-num">120<span>Гц</span></div><div class="stat-label">Плавность экрана</div></div>
+      <div class="stat"><div class="stat-num">5000<span>мАч</span></div><div class="stat-label">Батарея</div></div>
     </div>
   </div>
-
-  <!-- Phone mockup -->
   <div class="hero-phone-wrapper">
     <div class="phone-placeholder">
       <div class="phone-notch"></div>
@@ -933,9 +452,196 @@
     </div>
   </div>
 </section>
-
+ 
 <div class="hr"></div>
-
+ 
+<!-- PHILOSOPHY -->
+<section id="philosophy">
+  <div class="section-wrap">
+    <div class="reveal">
+      <div class="section-label">О нас</div>
+      <h2 class="section-title">Инженерная<br>честность</h2>
+    </div>
+    <div class="philosophy-layout">
+      <div class="philosophy-main reveal">
+        <p class="philosophy-lead">Мы не продаём маркетинг.<br><span>Мы продаём инженерию.</span></p>
+        <p class="philosophy-body">
+          VELTA — это инженерный проект, выросший из одного простого вопроса: <strong>почему смартфоны стоят в 3 раза дороже своей себестоимости?</strong> Мы решили сломать эту систему. Полностью прозрачная цепочка стоимости, никаких маркетинговых бюджетов в цене устройства.
+        </p>
+        <p class="philosophy-body">
+          Каждое решение — от выбора дисплея до термоинтерфейса — принимается инженерами, а не маркетологами. Мы оптимизируем под <strong>долгий жизненный цикл</strong>, а не под презентации.
+        </p>
+      </div>
+      <div class="philosophy-pillars reveal" style="transition-delay:0.15s">
+        <div class="pillar">
+          <div class="pillar-icon">🔩</div>
+          <div>
+            <div class="pillar-title">Инженерия прежде всего</div>
+            <div class="pillar-text">Каждый компонент выбирается по техническим критериям, а не по марже дистрибьютора.</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon">💡</div>
+          <div>
+            <div class="pillar-title">Прозрачная цена</div>
+            <div class="pillar-text">Мы публикуем полную себестоимость. Ты знаешь за что платишь — до рубля.</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon">⏳</div>
+          <div>
+            <div class="pillar-title">Долгий жизненный цикл</div>
+            <div class="pillar-text">Оптимизируем под 4–5 лет работы. Никаких искусственных замедлений через обновления.</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon">🛡️</div>
+          <div>
+            <div class="pillar-title">Ответственность</div>
+            <div class="pillar-text">Если что-то ломается — мы берём на себя. Сервис в России, честная гарантия.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<div class="hr"></div>
+ 
+<!-- PROTOTYPE V-01B -->
+<section id="prototype">
+  <div class="section-wrap">
+    <div class="reveal proto-header">
+      <div class="proto-badge"><span class="proto-badge-dot"></span> В разработке · Этап тестирования архитектуры</div>
+      <div class="section-label">Прототип</div>
+      <h2 class="section-title">V-01B</h2>
+      <p class="proto-subtitle">Первый прототип платформы VELTA. Все характеристики оптимизированы под долгосрочную надёжность, а не маркетинговые цифры.</p>
+    </div>
+ 
+    <div class="reveal" style="transition-delay:0.1s">
+      <div class="spec-table-wrap">
+        <table class="spec-table">
+          <thead>
+            <tr>
+              <th>Характеристика</th>
+              <th>Параметры прототипа V-01B</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Процессор</td>
+              <td><span class="spec-val-accent">8-ядерный</span>, оптимизирован под долгий жизненный цикл</td>
+            </tr>
+            <tr>
+              <td>Дисплей</td>
+              <td><span class="spec-val-accent">120Hz IPS High-Precision</span> — откалиброван для снижения нагрузки</td>
+            </tr>
+            <tr>
+              <td>Аккумулятор</td>
+              <td><span class="spec-val-accent">5000 mAh</span> (Lithium-Polymer)</td>
+            </tr>
+            <tr>
+              <td>Материалы корпуса</td>
+              <td>Авиационный сплав / Закалённое стекло</td>
+            </tr>
+            <tr>
+              <td>Статус</td>
+              <td><span class="spec-status"><span class="spec-status-dot"></span>В разработке · Этап тестирования архитектуры</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <div class="proto-cards">
+      <div class="spec-card reveal" style="transition-delay:0.05s">
+        <div class="spec-icon">🖥️</div>
+        <div class="spec-name">Экран</div>
+        <div class="spec-value">6.7" IPS<br>120 Гц</div>
+        <div class="spec-desc">Плавность на максимум. FullHD+ с адаптивной частотой кадров.</div>
+      </div>
+      <div class="spec-card reveal" style="transition-delay:0.1s">
+        <div class="spec-icon">⚡</div>
+        <div class="spec-name">Процессор</div>
+        <div class="spec-value">8-ядерный</div>
+        <div class="spec-desc">Оптимизирован под долгий жизненный цикл и тепловую стабильность.</div>
+      </div>
+      <div class="spec-card reveal" style="transition-delay:0.15s">
+        <div class="spec-icon">🔋</div>
+        <div class="spec-name">Батарея</div>
+        <div class="spec-value">5000 mAh<br>Li-Polymer</div>
+        <div class="spec-desc">Два дня без подзарядки в смешанном режиме.</div>
+      </div>
+      <div class="spec-card reveal" style="transition-delay:0.2s">
+        <div class="spec-icon">🏗️</div>
+        <div class="spec-name">Корпус</div>
+        <div class="spec-value">Авиасплав<br>+ стекло</div>
+        <div class="spec-desc">Авиационный сплав и закалённое стекло. Прочность без наценки.</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<div class="hr"></div>
+ 
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="section-wrap">
+    <div class="reveal">
+      <div class="section-label">Дорожная карта</div>
+      <h2 class="section-title">2025 — 2028</h2>
+    </div>
+    <div class="roadmap-timeline reveal" style="transition-delay:0.1s">
+      <div class="roadmap-line"></div>
+      <div class="roadmap-items">
+ 
+        <div class="roadmap-item">
+          <div class="roadmap-dot-wrap"><div class="roadmap-dot done"></div></div>
+          <div class="roadmap-content">
+            <div class="roadmap-quarter done">Q1 2025</div>
+            <div class="roadmap-title">Запуск проекта</div>
+            <div class="roadmap-desc">Формирование инженерной группы. Определение архитектурной концепции. Первичное исследование компонентной базы.</div>
+            <div class="roadmap-badge badge-done">✓ Готово</div>
+          </div>
+        </div>
+ 
+        <div class="roadmap-item">
+          <div class="roadmap-dot-wrap"><div class="roadmap-dot current"></div></div>
+          <div class="roadmap-content">
+            <div class="roadmap-quarter current">Q2 2026</div>
+            <div class="roadmap-title">Прототипирование V-01B</div>
+            <div class="roadmap-desc">Прототипирование. Оптимизация системы охлаждения и термоинтерфейсов. Первые нагрузочные тесты IPS-матрицы и аккумулятора.</div>
+            <div class="roadmap-badge badge-current">◉ Текущий этап</div>
+          </div>
+        </div>
+ 
+        <div class="roadmap-item">
+          <div class="roadmap-dot-wrap"><div class="roadmap-dot future"></div></div>
+          <div class="roadmap-content">
+            <div class="roadmap-quarter future">Q4 2027</div>
+            <div class="roadmap-title">Финальное тестирование</div>
+            <div class="roadmap-desc">Финальное тестирование. Аудит безопасности и проверка нагрузки. Сертификация. Подготовка производственной документации.</div>
+            <div class="roadmap-badge badge-future">— Запланировано</div>
+          </div>
+        </div>
+ 
+        <div class="roadmap-item">
+          <div class="roadmap-dot-wrap"><div class="roadmap-dot future"></div></div>
+          <div class="roadmap-content">
+            <div class="roadmap-quarter future">2028</div>
+            <div class="roadmap-title">Релиз — первая партия</div>
+            <div class="roadmap-desc">Выпуск первой партии устройств. Продажи для участников предзаказа. Начало второй фазы разработки платформы VELTA.</div>
+            <div class="roadmap-badge badge-future">— Запланировано</div>
+          </div>
+        </div>
+ 
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<div class="hr"></div>
+ 
 <!-- PRICE CALCULATOR -->
 <section id="price">
   <div class="section-wrap">
@@ -944,68 +650,30 @@
       <h2 class="section-title">Из чего состоит<br>каждый рубль</h2>
       <p class="price-subtitle">Никаких скрытых наценок за лого. Только реальные цифры.</p>
     </div>
-
     <div class="price-layout">
       <div class="cost-list reveal">
-        <div class="cost-item">
-          <div class="cost-name"><span class="cost-icon">📱</span> Экран 6.7" 120 Гц</div>
-          <div class="cost-value">3 200 ₽</div>
-        </div>
-        <div class="cost-item">
-          <div class="cost-name"><span class="cost-icon">⚡</span> Процессор Helio G99</div>
-          <div class="cost-value">2 500 ₽</div>
-        </div>
-        <div class="cost-item">
-          <div class="cost-name"><span class="cost-icon">📷</span> Камера 50 Мп</div>
-          <div class="cost-value">1 400 ₽</div>
-        </div>
-        <div class="cost-item">
-          <div class="cost-name"><span class="cost-icon">🔋</span> Батарея 5000 мАч</div>
-          <div class="cost-value">600 ₽</div>
-        </div>
-        <div class="cost-item">
-          <div class="cost-name"><span class="cost-icon">🏗️</span> Корпус и сборка</div>
-          <div class="cost-value">2 300 ₽</div></div>
-        <div class="cost-item">
-          <div class="cost-name"><span class="cost-icon">📦</span> Логистика и упаковка</div>
-          <div class="cost-value">1 000 ₽</div>
-        </div>
+        <div class="cost-item"><div class="cost-name"><span class="cost-icon">📱</span> Экран 6.7" 120 Гц</div><div class="cost-value">3 200 ₽</div></div>
+        <div class="cost-item"><div class="cost-name"><span class="cost-icon">⚡</span> Процессор Helio G99</div><div class="cost-value">2 500 ₽</div></div>
+        <div class="cost-item"><div class="cost-name"><span class="cost-icon">📷</span> Камера 50 Мп</div><div class="cost-value">1 400 ₽</div></div>
+        <div class="cost-item"><div class="cost-name"><span class="cost-icon">🔋</span> Батарея 5000 мАч</div><div class="cost-value">600 ₽</div></div>
+        <div class="cost-item"><div class="cost-name"><span class="cost-icon">🏗️</span> Корпус и сборка</div><div class="cost-value">2 300 ₽</div></div>
+        <div class="cost-item"><div class="cost-name"><span class="cost-icon">📦</span> Логистика и упаковка</div><div class="cost-value">1 000 ₽</div></div>
         <div class="cost-divider"></div>
-        <div class="cost-item total">
-          <div class="cost-name">💰 Итого себестоимость</div>
-          <div class="cost-value">11 000 ₽</div>
-        </div>
-        <div class="cost-item markup">
-          <div class="cost-name"><span class="cost-icon">🚀</span> Наша наценка на развитие</div>
-          <div class="cost-value">9 000 ₽</div>
-        </div>
-        <div class="cost-item final-price">
-          <div class="cost-name">🎯 Финальная цена VRERU Lite</div>
-          <div class="cost-value">20 000 ₽</div>
-        </div>
+        <div class="cost-item total"><div class="cost-name">💰 Итого себестоимость</div><div class="cost-value">11 000 ₽</div></div>
+        <div class="cost-item markup"><div class="cost-name"><span class="cost-icon">🚀</span> Наша наценка на развитие</div><div class="cost-value">9 000 ₽</div></div>
+        <div class="cost-item final-price"><div class="cost-name">🎯 Финальная цена VRERU Lite</div><div class="cost-value">20 000 ₽</div></div>
       </div>
-
-      <div class="reveal">
+      <div class="reveal" style="transition-delay:0.1s">
         <div class="price-card">
           <div class="price-card-title">VELTA vs Конкуренты</div>
           <div class="vs-container">
             <div>
-              <div class="vs-bar-label">
-                <span class="vs-brand">VELTA VRERU Lite</span>
-                <span class="vs-price ours">20 000 ₽</span>
-              </div>
-              <div class="bar-track">
-                <div class="bar-fill ours"></div>
-              </div>
+              <div class="vs-bar-label"><span class="vs-brand">VELTA VRERU Lite</span><span class="vs-price ours">20 000 ₽</span></div>
+              <div class="bar-track"><div class="bar-fill ours"></div></div>
             </div>
             <div>
-              <div class="vs-bar-label">
-                <span class="vs-brand">Конкуренты</span>
-                <span class="vs-price theirs">30 000 ₽</span>
-              </div>
-              <div class="bar-track">
-                <div class="bar-fill theirs"></div>
-              </div>
+              <div class="vs-bar-label"><span class="vs-brand">Конкуренты</span><span class="vs-price theirs">30 000 ₽</span></div>
+              <div class="bar-track"><div class="bar-fill theirs"></div></div>
             </div>
           </div>
           <div class="savings-badge">
@@ -1022,48 +690,49 @@
     </div>
   </div>
 </section>
-
+ 
 <div class="hr"></div>
-
-<!-- SPECS -->
-<section id="specs">
+ 
+<!-- LAB LOG -->
+<section id="lablog">
   <div class="section-wrap">
     <div class="reveal">
-      <div class="section-label">Спецификации</div>
-      <h2 class="section-title">VRERU Lite</h2>
+      <div class="section-label">Из лаборатории</div>
+      <h2 class="section-title">Журнал<br>разработки</h2>
     </div>
-    <div class="specs-grid">
-      <div class="spec-card reveal">
-        <div class="spec-icon">🖥️</div>
-        <div class="spec-name">Экран</div>
-        <div class="spec-value">6.7" IPS<br>120 Гц</div>
-        <div class="spec-desc">Плавность на максимум. FullHD+ с адаптивной частотой кадров.</div>
+    <div class="lablog-grid">
+      <div class="log-entry reveal" style="transition-delay:0.05s">
+        <div class="log-date">28 мая 2026</div>
+        <div class="log-title">Нагрузочный тест IPS-матрицы завершён</div>
+        <div class="log-text">Завершили нагрузочный тест IPS-матрицы. 120Гц работают стабильно при 40°C. Отклонений от калибровки в пределах погрешности нет.</div>
+        <div class="log-tag">✓ Дисплей</div>
       </div>
-      <div class="spec-card reveal" style="transition-delay: 0.1s">
-        <div class="spec-icon">⚡</div>
-        <div class="spec-name">Процессор</div>
-        <div class="spec-value">Helio G99</div>
-        <div class="spec-desc">Народный чип для игр и задач. 6 нм, до 2.2 ГГц.</div>
+      <div class="log-entry reveal" style="transition-delay:0.1s">
+        <div class="log-date">14 мая 2026</div>
+        <div class="log-title">Термоинтерфейс: третья итерация</div>
+        <div class="log-text">Протестировали третий вариант термоинтерфейса под нагрузкой. Температура процессора снизилась на 3.2°C относительно второй итерации. Идём дальше.</div>
+        <div class="log-tag">⚙ Тепловой контроль</div>
       </div>
-      <div class="spec-card reveal" style="transition-delay: 0.2s">
-        <div class="spec-icon">🔋</div>
-        <div class="spec-name">Батарея</div>
-        <div class="spec-value">5000 мАч<br>+ быстрая зарядка</div>
-        <div class="spec-desc">Два дня без подзарядки в смешанном режиме.</div>
+      <div class="log-entry reveal" style="transition-delay:0.15s">
+        <div class="log-date">2 мая 2026</div>
+        <div class="log-title">Аккумулятор: первые данные</div>
+        <div class="log-text">Li-Polymer 5000mAh показал ёмкость 4983mAh после 100 циклов — деградация 0.34%. Результат выше ожидаемого. Продолжаем мониторинг.</div>
+        <div class="log-tag">🔋 Аккумулятор</div>
       </div>
-      <div class="spec-card reveal" style="transition-delay: 0.3s">
-        <div class="spec-icon">📷</div>
-        <div class="spec-name">Камера</div>
-        <div class="spec-value">50 Мп</div>
-        <div class="spec-desc">Честный основной модуль. Без лишней мишуры — только качество.</div>
+      <div class="log-entry reveal" style="transition-delay:0.2s">
+        <div class="log-date">19 апреля 2026</div>
+        <div class="log-title">Авиационный сплав: финальный образец</div>
+        <div class="log-text">Получили финальные образцы корпуса из авиационного сплава. Вес — 172г. Прочность при падении с 1.5м без трещин. Приступаем к интеграции.</div>
+        <div class="log-tag">🏗 Корпус</div>
       </div>
     </div>
   </div>
 </section>
-
+ 
 <div class="hr"></div>
-
-<!-- PREORDER --><section id="preorder">
+ 
+<!-- PREORDER -->
+<section id="preorder">
   <div class="section-wrap">
     <div class="preorder-wrap reveal">
       <div>
@@ -1074,11 +743,14 @@
           <input type="email" class="form-input" id="emailInput" placeholder="твой@email.ru">
           <button class="btn btn-primary btn-lg" id="preorderBtn">Оформить →</button>
         </div>
-        <p style="margin-top: 16px; font-size: 12px; color: var(--text-dim);">
-          Никакого спама. Только уведомление о старте продаж.
-        </p>
+        <p style="margin-top: 16px; font-size: 12px; color: var(--text-dim);">Никакого спама. Только уведомление о старте продаж.</p>
+ 
+        <div class="subscribe-block">
+          <div class="subscribe-title">Стань свидетелем создания VELTA</div>
+          <div class="subscribe-sub">Получайте отчёты из нашей лаборатории. <span>Первые — узнают первыми.</span></div>
+          <a href="https://www.tiktok.com" target="_blank" class="btn btn-cyan" style="font-size:13px;padding:10px 22px;">Подписаться на обновления →</a>
+        </div>
       </div>
-
       <div class="preorder-info">
         <ul class="preorder-features">
           <li><span>Честная цена без маркетинговой наценки</span></li>
@@ -1095,43 +767,43 @@
     </div>
   </div>
 </section>
-
+ 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-logo">VEL<span>T</span>A</div>
-  <div class="footer-links">
-    <a href="#">Политика</a>
-    <a href="#">Контакты</a>
-    <a href="#">Пресса</a>
+  <div class="footer-inner">
+    <div class="footer-logo">VEL<span>T</span>A</div>
+    <div class="footer-links">
+      <a href="#">Политика</a>
+      <a href="#">Контакты</a>
+      <a href="#">Пресса</a>
+    </div>
+    <div class="footer-copy">
+      © 2026 VELTA Engineering Lab. Все права защищены.
+      <span class="restricted">Доступ к технической документации ограничен уровнем <span>V-1</span></span>
+    </div>
   </div>
-  <div class="footer-copy">© 2024 VELTA. Честность — наш продукт.</div>
 </footer>
-
+ 
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-icon">🔥</div>
     <h3 class="modal-title">Первая партия<br><span>распродана!</span></h3>
-    <p class="modal-text">
-      Вы внесены в список ожидания на второй дроп.<br>
-      Мы свяжемся с вами первыми, как только откроем продажи снова.
-    </p>
+    <p class="modal-text">Вы внесены в список ожидания на второй дроп.<br>Мы свяжемся с вами первыми, как только откроем продажи снова.</p>
     <button class="modal-close" id="modalClose">Понял, буду ждать</button>
   </div>
 </div>
-
+ 
 <script>
   // Custom cursor
   const cursor = document.getElementById('cursor');
   const ring = document.getElementById('cursorRing');
   let mx = -100, my = -100, rx = -100, ry = -100;
-
   document.addEventListener('mousemove', e => {
     mx = e.clientX; my = e.clientY;
     cursor.style.left = mx + 'px';
     cursor.style.top = my + 'px';
   });
-
   (function animRing() {
     rx += (mx - rx) * 0.12;
     ry += (my - ry) * 0.12;
@@ -1139,66 +811,50 @@
     ring.style.top = ry + 'px';
     requestAnimationFrame(animRing);
   })();
-
-  // Header scroll
+ 
+  // Header scroll + active nav
   const header = document.getElementById('header');
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
   window.addEventListener('scroll', () => {
     header.classList.toggle('scrolled', window.scrollY > 60);
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 140) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
   });
-
+ 
   // Scroll reveal
   const reveals = document.querySelectorAll('.reveal');
   const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-      }
-    });
-  }, { threshold: 0.1 });
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.08 });
   reveals.forEach(r => obs.observe(r));
-
+ 
   // Preorder modal
   const btn = document.getElementById('preorderBtn');
   const overlay = document.getElementById('modalOverlay');
   const closeBtn = document.getElementById('modalClose');
-
-  btn.addEventListener('click', () => {
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  });
-  closeBtn.addEventListener('click', () => {
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  });
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) {
-      overlay.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  });// Bar animation on scroll
+  btn.addEventListener('click', () => { overlay.classList.add('active'); document.body.style.overflow = 'hidden'; });
+  closeBtn.addEventListener('click', () => { overlay.classList.remove('active'); document.body.style.overflow = ''; });
+  overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; } });
+ 
+  // Bar animation
   const bars = document.querySelectorAll('.bar-fill');
   const barObs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.style.animationPlayState = 'running';
-      }
-    });
+    entries.forEach(e => { if (e.isIntersecting) e.target.style.animationPlayState = 'running'; });
   });
-  bars.forEach(b => {
-    b.style.animationPlayState = 'paused';
-    barObs.observe(b);
-  });
-
-  // Smooth anchor scroll
+  bars.forEach(b => { b.style.animationPlayState = 'paused'; barObs.observe(b); });
+ 
+  // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     });
   });
 </script>
 </body>
-</html>
